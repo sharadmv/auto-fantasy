@@ -18,7 +18,7 @@ Create a file called `keys.json` with the following contents:
 ```json
 {
     "consumer_key": "dj0yJmk9SUx0VXZmUFFObkFTJmQ9WVdrOWFGQnNObUpDTlRZbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD0wZQ--",
-    "consumer_secret": "4520f2bf292abde19885d941f0e07afbd0ff3f68",
+    "consumer_secret": "4520f2bf292abde19885d941f0e07afbd0ff3f68"
 }
 ```
 
