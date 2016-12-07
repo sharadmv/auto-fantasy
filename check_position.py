@@ -52,34 +52,49 @@ def get_my_team():
         yield player
 
 def get_available_players(position, type):
-    players = request("%s;count=10;status=%s;position=%s;sort_week=10;sort=PTS" % (PLAYER_URL, type, position))['fantasy_content']['league'][1]['players']
+    players = request("%s;count=20;status=%s;position=%s;sort_week=10;sort=PTS" % (PLAYER_URL, type, position))['fantasy_content']['league'][1]['players']
+    if players == []:
+        return
     player_count = players['count']
     for i in range(player_count):
         player = Player(players[str(i)]['player'][0])
         yield player
 
-def start(player_a, player_b):
+def start(player_a, player_b, check_a, check_b):
     a = '-'.join(player_a.lower().split(' '))
     b = '-'.join(player_b.lower().split(' '))
     url = FANTASY_PROS % (a, b)
     soup = BeautifulSoup(requests.get(url).text, 'html.parser')
     result = soup.find_all('table', class_='full-width')[0].tbody.find_all('tr')[1].find_all('td')[1:]
     picks = [p.find('div', class_='player-name').text.strip() for p in result]
-    return [player_a == picks[0], player_b == picks[0]]
+    return [check_a == picks[0], check_b == picks[0]]
 
 def check_position(team, position):
     players = [t for t in team if position in [p['position'] for p in t.eligible_positions]]
+    print("Checking players:", ", ".join(p.name['full'] for p in players))
     pos = "WR,RB,TE" if position == "W/R/T" else position
     waiver = list(get_available_players(pos, 'W'))
     free_agents = list(get_available_players(pos, 'FA'))
     for p in players:
         print("Checking: %s" % p.name['full'])
         for w in waiver + free_agents:
+            print("Comparing to:", w.name['full'])
             try:
-                comparison = start(p.name['full'], w.name['full'])
+                if position == "DEF":
+                    p_name = p.name['full']
+                    if p_name == "New York":
+                        p_name = p.editorial_team_full_name
+                    w_name = w.name['full']
+                    if w_name == "New York":
+                        w_name = w.editorial_team_full_name
+                    comparison = start(p_name + " Defense", w_name + " Defense", p.editorial_team_full_name, w.editorial_team_full_name)
+                else:
+                    comparison = start(p.name['full'], w.name['full'], p.name['full'], w.name['full'])
                 if comparison[1]:
                     print("Better player: %s" % w.name['full'])
             except:
+                import traceback
+                traceback.print_exc()
                 pass
 
 def parse_args():
